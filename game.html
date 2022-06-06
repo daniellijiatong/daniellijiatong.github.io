@@ -1,0 +1,178 @@
+<html>
+    <body>
+        <!-- Canvas used to play game a draw graphics-->
+    <canvas id = "canvas" width="1300" height="250"  style= "border:5px solid #003300"></canvas>
+    <h3>Dinosoar game by Ryan Rana and Daniel Li</h3>
+    <!-- buttons connected to javascript using onclick to manipulate graphics in canvas-->
+      <button type="button" onclick = make_jump()>Jump!</button>
+      <button id = "col" type="button" onclick = reset()>Reset</button>
+    </body>
+    <!-- CSS -->
+    <style>
+        canvas {
+            background-color: lightgoldenrodyellow;
+        }
+       button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            -webkit-transition-duration: 0.4s; /* Safari */
+            transition-duration: 0.4s;
+        }
+        button:hover{
+            background-color: yellow; /* Green */
+        }
+    </style>
+    <script>
+        //dino is the square  that the user controls and is created in the dinosoar class
+        dino = new dino(40,40,"indianred",10,160)
+        // each of these are one of the rectangles created in the obstacle class with random heights
+        a = new obstacle(20,200,"indianred",1300,Math.floor(Math.random() * 50)+100)
+        b = new obstacle(20,200,"indianred",2000,Math.floor(Math.random() * 50)+100)
+        D = new obstacle(20,200,"indianred",2700,Math.floor(Math.random() * 50)+100)
+        //The game over message
+        L = new l()
+        //Set as default to start the game
+        var win = true
+        var score = 0
+        var up = 0
+        //this continues to the keep the game playing as long as win=true, it updates core and  as well. This constantly run every few milliseconds
+        function updater(){
+            ctx.clearRect(0,0,1300,200)
+            if (win ==true){
+            dino.update()
+            a.update()
+            b.update()
+            D.update()
+        
+            }
+            L.update()
+            ctx.font = "20px Comic Sans MS";
+            ctx.fillText("Score: "+score,1200,40)
+            
+        }
+        // pathway from HTML5 Canvas to javascript to use logic to manipulate and create graphics
+        var c = document.getElementById("canvas");
+        var ctx = c.getContext("2d");
+        //if jump is true then it will be viewed as a conditional in dino class and a jump motion is applied (SEE 89)
+        function make_jump(){
+            dino.jump = true
+        }
+        //reset to default positions, default scores, default boolean, and default message
+        function reset(){
+            score=0
+            up = 0
+            L.message = ""
+            a.x = 1300
+            b.x = 2000
+            D.x = 2700
+            win =true
+        }
+        //DINO CLASS
+        function dino(width, height, color, x, y) {
+            //These are all parameters passed earlier
+            this.width = width;
+            this.height = height;
+            this.x = x;
+            this.y = y;
+            this.color = color
+            this.jump = false
+            this.speed = 9
+            //This is called from updater
+            this.update = function(){
+                // Keeps the color intact
+               ctx.fillStyle = this.color
+               //Creates the rectangle over and over again
+               ctx.fillRect(this.x,this.y,this.width,this.height)
+               //If the user jumped apply these physcis
+               if (this.jump ==true){
+                   //moves the y by 9 pixels up
+                   this.y-=this.speed
+                   //This value is changed by .25 pizels
+                   this.speed -= 0.25
+                   //continue to do this until the pixel change is -9.25
+                   if (this.speed == -9.25){
+                       //defaults reset
+                       this.jump = false
+                       this.speed = 9
+                   }
+               }
+            }
+        }
+        //game over message is originally nothing and then is changed to be seen
+        function l() {
+            this.message = ""
+            this.update = function(){
+                ctx.font = "20px Comic Sans MS";
+                ctx.fillStyle = "safari"
+                ctx.fillText(this.message,500,80)
+            }
+        }
+        //OBSTACLE CLASS
+        function obstacle(width, height, color, x, y) {
+            //These are all parameters passed earlier
+            this.width = width;
+            this.height = height;
+            this.x = x;
+            this.y = y;
+            this.color = color
+             //This is called from updater
+            this.update = function(){
+                 // Keeps the color intact
+               ctx.fillStyle = this.color
+                  //Creates the rectangle over and over again
+               ctx.fillRect(this.x,this.y,this.width,this.height)
+               //constanly moving left 10 pizels
+               this.x-=10
+               //if it reaches the end of the canvas it moves back to the right side so it can't be seen and appears to come in again as new
+               if (this.x<0){
+                   this.x = 2800
+                   //change size
+                   this.y = Math.floor(Math.random() * 50)+100
+                
+               }
+               // the coordiantes of all rectangle corners and dino corners
+               var myleft = this.x;
+                var myright = this.x + (this.width+10);
+                var mytop = this.y;
+                var mybottom = this.y + (this.height+10);
+                var otherleft = dino.x;
+                var otherright = dino.x + (40-10);
+                var othertop = dino.y;
+                var otherbottom = dino.y + (40-10);
+                var crash = true
+                //checks too see if coordinates are not intersected meaning they didn't crash, score is changed when dino is not dead and rectangle is gone
+                if ((mybottom < othertop) ||
+                   (mytop > otherbottom) ||
+                   (myright < otherleft) ||
+                   (myleft > otherright)) {
+               crash = false;
+                if (this.x<1){
+                score+=1
+                up+=1
+                }
+                //or you lose and game stops.
+                }else{
+                    L.message = "Game Over"
+                    win = false
+                }
+            }
+        }
+        //constanly running updater every 25 milliseconds
+        setInterval(updater,25)
+        //space bar means jump.
+        window.addEventListener('keydown', function (e) {
+            e = e || window.event;
+            dino.jump=true 
+                
+         })
+    </script>
+</html>
